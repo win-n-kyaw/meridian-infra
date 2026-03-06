@@ -1,0 +1,40 @@
+#cloud-config
+# Cloud-init for bastion-1 instance (AMD64)
+# Minimal install — SSH jump host only.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - jq
+  - tmux
+  - ufw
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      MaxAuthTries 3
+      X11Forwarding no
+      AllowAgentForwarding yes
+      AllowTcpForwarding yes
+    permissions: "0644"
+
+runcmd:
+  # Restart SSH with hardened config
+  - systemctl restart sshd
+
+  # Configure UFW — only allow SSH
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw --force enable
+
+  # Set hostname
+  - hostnamectl set-hostname bastion-1
+  - echo "bastion" > /etc/meridian-role
+
+final_message: "Cloud-init complete for bastion-1 after $UPTIME seconds"

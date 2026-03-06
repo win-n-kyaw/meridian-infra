@@ -1,0 +1,71 @@
+#cloud-config
+# Cloud-init for ops-1 instance (ARM64)
+# Installs Docker, base packages, prepares for Netmaker + monitoring stack.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - jq
+  - unzip
+  - htop
+  - tmux
+  - wireguard
+  - ufw
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      MaxAuthTries 3
+      X11Forwarding no
+      AllowAgentForwarding no
+      AllowTcpForwarding no
+    permissions: "0644"
+
+  - path: /etc/sysctl.d/99-meridian.conf
+    content: |
+      net.core.somaxconn = 1024
+      net.ipv4.ip_forward = 1
+      net.ipv4.conf.all.forwarding = 1
+    permissions: "0644"
+
+runcmd:
+  # Apply sysctl
+  - sysctl --system
+
+  # Restart SSH with hardened config
+  - systemctl restart sshd
+
+  # Install Docker CE
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+  # Add ubuntu user to docker group
+  - usermod -aG docker ubuntu
+
+  # Create directories for services
+  - mkdir -p /opt/netmaker
+  - mkdir -p /opt/monitoring
+  - mkdir -p /opt/nomad/data
+  - mkdir -p /etc/nomad.d
+
+  # Create mount point for Prometheus block volume
+  - mkdir -p /mnt/prometheus-data
+
+  # Set hostname
+  - hostnamectl set-hostname ops-1
+  - echo "ops" > /etc/meridian-role
+
+final_message: "Cloud-init complete for ops-1 after $UPTIME seconds"

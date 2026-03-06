@@ -1,0 +1,37 @@
+# Copy to `terraform.local.tfvars` and run:
+# terraform plan -var-file=terraform.local.tfvars
+# terraform apply -var-file=terraform.local.tfvars
+
+# OCI Authentication
+tenancy_ocid     = "ocid1.tenancy.oc1..<unique>"
+user_ocid        = "ocid1.user.oc1..<unique>"
+fingerprint      = "<api_key_fingerprint>"
+private_key_path = "~/.oci/oci.pem"
+compartment_id   = "ocid1.compartment.oc1..<unique>"
+
+# Region (must be home region for Always Free resources)
+region = "ap-singapore-1"
+
+# AD placement start index (0 = first AD, 1 = second AD, ...)
+# availability_domain_index = 0
+
+# SSH public key (paste full key or use file() in a .auto.tfvars)
+ssh_public_key = "ssh-ed25519 AAAA..."
+
+# Restrict SSH access to your IP (recommended)
+ssh_admin_cidr = "YOUR_IP/32"
+
+# Network (defaults are fine for most setups)
+# vcn_cidr            = "10.0.0.0/16"
+# public_subnet_cidr  = "10.0.1.0/24"
+# private_subnet_cidr = "10.0.2.0/24"
+# wireguard_cidr      = "10.10.0.0/16"
+
+# Compute (defaults match Always Free allocation: 4 OCPUs / 24 GB across 4 VMs)
+# nomad_server_count = 3
+# arm_ocpus          = 1
+# arm_memory_gb      = 6
+# boot_volume_size_gb = 47
+
+# Storage
+# prometheus_volume_size_gb = 50
