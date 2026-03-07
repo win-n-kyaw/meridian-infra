@@ -20,7 +20,7 @@ resource "aws_security_group" "instance_base" {
   }
 
   ingress {
-    description = "WireGuard/Netmaker"
+    description = "Netmaker"
     from_port   = 51820
     to_port     = 51820
     protocol    = "udp"
@@ -84,7 +84,7 @@ resource "aws_security_group" "nomad" {
     from_port   = 4646
     to_port     = 4646
     protocol    = "tcp"
-    cidr_blocks = [var.wireguard_cidr]
+    cidr_blocks = [var.wireguard_cidr, var.vpc_cidr]
   }
 
   ingress {
@@ -92,7 +92,7 @@ resource "aws_security_group" "nomad" {
     from_port   = 4647
     to_port     = 4647
     protocol    = "tcp"
-    cidr_blocks = [var.wireguard_cidr]
+    cidr_blocks = [var.wireguard_cidr, var.vpc_cidr]
   }
 
   ingress {
@@ -100,7 +100,7 @@ resource "aws_security_group" "nomad" {
     from_port   = 4648
     to_port     = 4648
     protocol    = "tcp"
-    cidr_blocks = [var.wireguard_cidr]
+    cidr_blocks = [var.wireguard_cidr, var.vpc_cidr]
   }
 
   ingress {
@@ -108,7 +108,7 @@ resource "aws_security_group" "nomad" {
     from_port   = 4648
     to_port     = 4648
     protocol    = "udp"
-    cidr_blocks = [var.wireguard_cidr]
+    cidr_blocks = [var.wireguard_cidr, var.vpc_cidr]
   }
 
   egress {
@@ -127,7 +127,7 @@ resource "aws_security_group" "nomad" {
 
 resource "aws_security_group" "ops" {
   name        = "${var.key_pair_name}-ops"
-  description = "Ops stack ports over WireGuard."
+  description = "Ops stack ports over Netmaker."
   vpc_id      = aws_vpc.meridian.id
 
   ingress {
@@ -160,6 +160,14 @@ resource "aws_security_group" "ops" {
     to_port     = 8443
     protocol    = "tcp"
     cidr_blocks = [var.wireguard_cidr]
+  }
+
+  ingress {
+    description = "Netmaker"
+    from_port   = 51820
+    to_port     = 51820
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"] # required for NAT traversal
   }
 
   egress {
